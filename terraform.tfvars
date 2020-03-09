@@ -10,7 +10,7 @@ cidrs = {
   rds2     = "10.0.6.0/24"
   rds3     = "10.0.7.0/24"
 }
-localip                 = "0.0.0.0/0"
+localip                 = "*.*.*.*/32"              #local IP to restrict acccess via ssh#
 domain_name            = "boatest"
 db_instance_class       = "db.t2.micro"
 dbname                  = "boadb"
