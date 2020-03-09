@@ -1,0 +1,53 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: refrech hosts cache
+      shell: /etc/ansible/hosts --refresh-cache
+    - name: refresh inventory
+      meta: refresh_inventory
+    - name: wait
+      pause: seconds=30
+
+- hosts: tag_Name_wpdev
+  become: yes
+  remote_user: ec2-user
+  tasks:
+    - name: update
+      yum:
+        name: '*'
+        state: latest
+        update_only: yes
+    - name: Install Apache
+      yum: name={{ item }} state=present
+      with_items:
+        - httpd
+        - php
+        - php-mysql
+    - name: Add extras repository
+      shell: yum-config-manager --enable extras
+    - name: insatll php 7
+      shell: "amazon-linux-extras install php7.2 -y"
+    - name: Extract Wordpress
+      unarchive:
+        src: https://wordpress.org/latest.tar.gz
+        dest: /var/www/html
+        extra_opts: [--strip-components=1]
+        remote_src: yes
+    - name: create file conf
+      copy:
+        src: /home/ec2-user/wp-config.php
+        dest: /var/www/html/wp-config.php
+        remote_src: yes
+    - name: make my directory tree readable
+      file:
+        path: /var/www/html
+        mode: u=rwx,g=rx,o=rx
+        recurse: yes
+        owner: apache
+        group: apache
+    - name: make sure apache is started ans at boot
+      service:
+        name: httpd
+        state: restarted
+        enabled: yes
